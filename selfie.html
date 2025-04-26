@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Mach ein Selfie</title>
+</head>
+<body>
+    <h1>Mach ein Selfie!</h1>
+    <video id="video" width="300" autoplay></video>
+    <br>
+    <button id="snap">Foto machen und senden</button>
+    <br><br>
+    <canvas id="canvas" width="300" style="display:none;"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Kamera-Zugriff verweigert:", err);
+            });
+
+        const canvas = document.getElementById('canvas');
+        const snap = document.getElementById('snap');
+        const context = canvas.getContext('2d');
+
+        snap.addEventListener("click", () => {
+            context.drawImage(video, 0, 0, 300, 150);
+            const imageData = canvas.toDataURL('image/png');
+
+            fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image: imageData })
+            })
+            .then(response => alert('Foto erfolgreich gesendet!'))
+            .catch(error => console.error('Fehler beim Senden:', error));
+        });
+    </script>
+</body>
+</html>
